@@ -1,4 +1,4 @@
-# GGUF Server Runner (v1.6)
+# GGUF Server Runner (v1.0)
 
 A specialized Python-based graphical interface designed to manage and deploy `llama.cpp` servers. This tool pivots from pure benchmarking to a "Service-First" approach, allowing users to inspect model RAM requirements before launching a persistent local or network-accessible inference server.
 
