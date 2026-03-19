@@ -1,11 +1,11 @@
 # GGUF Server Runner (v1.6)
 
-A specialized Python-based graphical interface designed to manage and deploy `llama.cpp` servers. This tool pivots from pure benchmarking to a "Service-First" approach, allowing users to inspect model VRAM requirements before launching a persistent local or network-accessible inference server.
+A specialized Python-based graphical interface designed to manage and deploy `llama.cpp` servers. This tool pivots from pure benchmarking to a "Service-First" approach, allowing users to inspect model RAM requirements before launching a persistent local or network-accessible inference server.
 
 ## 🚀 Key Features
 
 * **Dual-Mode Operation**:
-* **Inspect/Benchmark**: Uses `llama-cli.exe` to perform a 100-token dry run. This captures precise VRAM breakdown (Weights, KV Cache, Compute) and hardware speed (t/s).
+* **Inspect/Benchmark**: Uses `llama-cli.exe` to perform a 100-token dry run. This captures precise RAM breakdown (Weights, KV Cache, Compute) and hardware speed (t/s).
 * **Run Server**: Transitions to `llama-server.exe` to host a persistent OpenAI-compatible API and web-chat interface.
 
 
