@@ -2,6 +2,11 @@
 
 A specialized Python-based graphical interface designed to manage and deploy `llama.cpp` servers. This tool pivots from pure benchmarking to a "Service-First" approach, allowing users to inspect model RAM requirements before launching a persistent local or network-accessible inference server.
 
+
+<img width="951" height="652" alt="ggufrunner" src="https://github.com/user-attachments/assets/d081634d-df09-4302-8f6a-c97df401976b" />
+
+---
+
 ## 🚀 Key Features
 
 * **Dual-Mode Operation**:
