@@ -35,9 +35,15 @@ class GgufServerRunner:
         tk.Entry(root, textvariable=self.mmproj_path, width=75).grid(row=1, column=1, padx=5)
         tk.Button(root, text="Browse", command=self.browse_mmproj).grid(row=1, column=2, padx=5)
 
+        # --- 2.5 Model Name / Alias ---
+        tk.Label(root, text="Model Name/API Alias (-a):").grid(row=2, column=0, sticky="w", padx=10, pady=2)
+        self.model_name = tk.StringVar()
+        tk.Entry(root, textvariable=self.model_name, width=75).grid(row=2, column=1, padx=5)
+        tk.Label(root, text="(optional, e.g., 'llama3.1')", fg="gray").grid(row=2, column=2, sticky="w", padx=2)
+
         # --- 3. Server Networking & Settings ---
         net_frame = tk.LabelFrame(root, text=" Server Settings ")
-        net_frame.grid(row=2, column=0, columnspan=3, sticky="ew", padx=10, pady=5)
+        net_frame.grid(row=3, column=0, columnspan=3, sticky="ew", padx=10, pady=5)
 
         tk.Label(net_frame, text="Port:").pack(side="left", padx=5)
         self.port = tk.IntVar(value=8080)
@@ -51,7 +57,7 @@ class GgufServerRunner:
 
         # --- 4. Parameters ---
         param_frame = tk.Frame(root)
-        param_frame.grid(row=3, column=0, columnspan=3, sticky="w", padx=10, pady=5)
+        param_frame.grid(row=4, column=0, columnspan=3, sticky="w", padx=10, pady=5)
         
         tk.Label(param_frame, text="GPU Layers:").pack(side="left")
         self.ngl = tk.IntVar(value=0)
@@ -74,7 +80,7 @@ class GgufServerRunner:
         tk.Spinbox(param_frame, from_=-1, to=8192, textvariable=self.reasoning_budget, width=6).pack(side="left", padx=5)
 
         cb_frame = tk.Frame(root)
-        cb_frame.grid(row=4, column=0, columnspan=3, sticky="w", padx=10)
+        cb_frame.grid(row=5, column=0, columnspan=3, sticky="w", padx=10)
         self.ctk_var, self.ctv_var, self.fa_var, self.embed_var = tk.BooleanVar(), tk.BooleanVar(), tk.BooleanVar(), tk.BooleanVar()
         tk.Checkbutton(cb_frame, text="Quantize K Cache", variable=self.ctk_var).pack(side="left", padx=5)
         tk.Checkbutton(cb_frame, text="Quantize V Cache", variable=self.ctv_var).pack(side="left", padx=5)
@@ -83,7 +89,7 @@ class GgufServerRunner:
 
         # --- 5. Info & Performance Panel ---
         info_frame = tk.LabelFrame(root, text=" Live Model Stats & Performance ", fg="blue", font=("Arial", 10, "bold"))
-        info_frame.grid(row=5, column=0, columnspan=3, sticky="ew", padx=10, pady=10)
+        info_frame.grid(row=6, column=0, columnspan=3, sticky="ew", padx=10, pady=10)
         
         self.stat_layers = tk.StringVar(value="Layers: -")
         self.stat_free_ram = tk.StringVar(value=f"System Available: {mem.available/(1024**3):.2f} GB")
@@ -109,7 +115,7 @@ class GgufServerRunner:
 
         # --- 6. Controls ---
         btn_frame = tk.Frame(root)
-        btn_frame.grid(row=6, column=0, columnspan=3, pady=5)
+        btn_frame.grid(row=7, column=0, columnspan=3, pady=5)
         self.server_btn = tk.Button(btn_frame, text="Run Server", command=lambda: self.start_task("server"), bg="#28a745", fg="white", width=12)
         self.server_btn.pack(side="left", padx=5)
         self.inspect_btn = tk.Button(btn_frame, text="Inspect/Benchmark", command=lambda: self.start_task("inspect"), bg="#007bff", fg="white", width=18)
@@ -119,10 +125,10 @@ class GgufServerRunner:
         tk.Button(btn_frame, text="Clear Log", command=self.clear_all, width=10).pack(side="left", padx=5)
 
         self.status_label = tk.Label(root, text="System: Idle | PID: None", fg="grey")
-        self.status_label.grid(row=7, column=0, columnspan=3)
+        self.status_label.grid(row=8, column=0, columnspan=3)
 
         self.output_text = tk.Text(root, height=12, width=120, font=("Consolas", 9))
-        self.output_text.grid(row=8, column=0, columnspan=3, padx=10, pady=5)
+        self.output_text.grid(row=9, column=0, columnspan=3, padx=10, pady=5)
 
         self.current_model_mib = self.current_kv_mib = self.current_compute_mib = 0.0
         self.current_mode = "server"
@@ -167,8 +173,10 @@ class GgufServerRunner:
                     self.stat_prompt_speed.set(f"Prompt: {m.group(1)} t/s")
                     self.stat_gen_speed.set(f"Gen: {m.group(2)} t/s")
 
+        # 🔧 MODIFICATION #3: Always open browser on localhost regardless of share_net setting
         if self.current_mode == "server" and self.auto_browser.get() and "server is listening on" in line.lower():
             threading.Timer(1.5, lambda: webbrowser.open(f"http://127.0.0.1:{self.port.get()}")).start()
+        
         self.update_total_ram_display()
 
     def update_total_ram_display(self):
@@ -219,10 +227,16 @@ class GgufServerRunner:
             cmd = [".\\llama-server.exe", "-m", self.model_path.get(), "--mmap", "-ngl", str(self.ngl.get()), "-t", str(self.threads.get()), "-c", str(self.context.get()), "--host", host, "--port", str(self.port.get()), "-b", self.batch_size.get()]
             if self.embed_var.get(): cmd.append("--embedding")
         
+        # 🔧 MODIFICATION #2: Add -a MODELNAME if specified
+        if self.model_name.get().strip():
+            cmd.extend(["-a", self.model_name.get().strip()])
+        
         cmd.extend(["--reasoning-budget", str(self.reasoning_budget.get())])
         if self.mmproj_path.get(): cmd.extend(["--mmproj", self.mmproj_path.get()])
-        if self.ctk_var.get(): cmd.extend(['-ctk', 'q8_0'])
-        if self.ctv_var.get(): cmd.extend(['-ctv', 'q8_0'])
+        
+        # 🔧 MODIFICATION #1: Use q4_0 instead of q8_0 for KV cache quantization
+        if self.ctk_var.get(): cmd.extend(['-ctk', 'q4_0'])
+        if self.ctv_var.get(): cmd.extend(['-ctv', 'q4_0'])
         if self.fa_var.get(): cmd.extend(['-fa', 'on'])
         return cmd
 
